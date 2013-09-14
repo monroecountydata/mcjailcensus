@@ -207,8 +207,8 @@ def __dobookingtype(fullname):
     except:
         bookingtype = BookingTypeModel(fullname=fullname)
         DBSession.add(bookingtype)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return bookingtype
 
 def __docustodytype(shortname):
@@ -217,8 +217,8 @@ def __docustodytype(shortname):
     except:
         custodytype = CustodyTypeModel(shortname=shortname)
         DBSession.add(custodytype)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return custodytype
 
 def __docourt(shortname):
@@ -227,8 +227,8 @@ def __docourt(shortname):
     except:
         court = CourtModel(shortname=shortname)
         DBSession.add(court)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return court
 
 def __dojudge(fullname,first,middle,last):
@@ -237,8 +237,8 @@ def __dojudge(fullname,first,middle,last):
     except:
         judge = JudgeModel(fullname=fullname,first=first,middle=middle,last=last)
         DBSession.add(judge)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return judge
 
 def __doagency(fullname):
@@ -247,8 +247,8 @@ def __doagency(fullname):
     except:
         agency = AgencyModel(fullname=fullname)
         DBSession.add(agency)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return agency
 
 def __doarresttype(fullname):
@@ -257,8 +257,8 @@ def __doarresttype(fullname):
     except:
         arresttype = ArrestTypeModel(fullname=fullname)
         DBSession.add(arresttype)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return arresttype
 
 def __docharge(fullname):
@@ -267,8 +267,8 @@ def __docharge(fullname):
     except:
         charge = ChargeModel(fullname=fullname)
         DBSession.add(charge)
-    DBSession.flush()
-    transaction.commit()
+        DBSession.flush()
+        transaction.commit()
     return charge
 
 def _parseinmates(rawinmates):
