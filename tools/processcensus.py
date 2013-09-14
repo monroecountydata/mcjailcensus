@@ -21,7 +21,10 @@ from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from cStringIO import StringIO
 
-verbose = True
+import ConfigParser
+
+debug = False
+verbose = False
 
 def report(text):
     global verbose
@@ -37,9 +40,9 @@ def _downloadpdf(url):
     #report("... Done downloading PDF.")
     return filename
 
-def _decodepdf(filename,DEBUG=False):
+def _decodepdf(filename,debug=False):
     pdfstr = ""
-    if DEBUG==True:
+    if debug==True:
         report("Debug mode enabled, reading inmates from rawfile.txt ...")
         with open("rawfile.txt","r") as rawfile:
             pdfstr = rawfile.read()
@@ -118,15 +121,15 @@ def _decodepdf(filename,DEBUG=False):
 
     return pdfstr,True
 
-def _pullpdf(url="http://www2.monroecounty.gov/sheriff-inmate",baseurl="http://www2.monroecounty.gov",linktext="Inmate Census",DEBUG=False):
+def _pullpdf(url="http://www2.monroecounty.gov/sheriff-inmate",baseurl="http://www2.monroecounty.gov",linktext="Inmate Census",debug=False):
     report("Pulling in PDF data ...")
-    #DEBUG = True
+    #debug = True
     pdftext = ""
     success = False
     filename = ""
-    if DEBUG:
-        report("DEBUG enabled, decoding file from disk ...")
-        pdftext,success = _decodepdf(filename,DEBUG)
+    if debug:
+        report("debug enabled, decoding file from disk ...")
+        pdftext,success = _decodepdf(filename,debug)
     else:
         report("Looking for census link on html page ...")
         html = urllib2.urlopen(url)
@@ -209,6 +212,8 @@ def __dobookingtype(fullname):
         DBSession.add(bookingtype)
         DBSession.flush()
         transaction.commit()
+        
+        #print "FULLNAME: {0}".format(bookingtype.fullname)
     return bookingtype
 
 def __docustodytype(shortname):
@@ -360,15 +365,15 @@ def _parseinmates(rawinmates):
     report("... Done attempting to process inmate, custody, and booking data.")
     return retdata,success
 
-def getinmates(DEBUG=False):
+def getinmates(debug=False):
     inmates = []
     sucess = False
-    if DEBUG == True:
+    if debug == True:
         success = True
         with open("pdftext.txt", "r") as _file:
             pdftext = _file.read()
     else:
-        pdftext,success = _pullpdf(DEBUG=DEBUG)
+        pdftext,success = _pullpdf(debug=debug)
     if success:
         _inmates,success = _pullinmates(pdftext)
     if success:
@@ -376,11 +381,22 @@ def getinmates(DEBUG=False):
     return inmates,success
 
 def main():
-    report("Starting processcensus.py ...")
+    report("Application Starting: processcensus.py")
 
-    DEBUG = False
+    report("Reading configuration from config.ini ...")
+    global debug
+    global verbose
+    #try:
+    config = ConfigParser.ConfigParser()
+    config.read('config.ini')
+    debug = config.getboolean('processcensus','debug')
+    verbose = config.get('processcensus','verbose')
+    uri = config.get('processcensus','uri')
+    #except:
+    #    raise Exception("There is an error in your config.ini file.")
+    report("... Done reading configuration.")
 
-    engine =  create_engine('sqlite:///inmates.sqlite')
+    engine =  create_engine(uri)
     Session = sessionmaker(bind=engine)
     global DBSession
     DBSession = scoped_session(
@@ -390,7 +406,7 @@ def main():
 
     report("Pulling census from the interwebs ...")
 
-    theinmates,success = getinmates(DEBUG)
+    theinmates,success = getinmates(debug)
     if success:
         report("... Done pulling and processing census.")
     else:
@@ -416,4 +432,7 @@ def main():
             DBSession.add(booking)
         DBSession.flush()
         transaction.commit()
+
+    report("Application Exit.\n");
+
 main()
