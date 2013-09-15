@@ -16,8 +16,8 @@ Install virtualenv:
 
 Create virtual enviornment:
 
-    $ virtualenv --no-site-packages -p python2 hflosskenv
-    $ . hflosskenv/bin/activate
+    $ virtualenv --no-site-packages -p python2 mcdjailcensusenv
+    $ . mcjailcensusenv/bin/activate
     
 Install needed packages:
 
