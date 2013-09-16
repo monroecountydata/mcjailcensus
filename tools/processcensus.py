@@ -207,11 +207,13 @@ def _parsename(fullname):
 def __dobookingtype(fullname):
     try:
         bookingtype = DBSession.query(BookingTypeModel).filter(BookingTypeModel.fullname == fullname).one()
+        #report("Booking type '{0}' already in database, using query'd row".format(fullname))
     except:
+        #report("Booking type not found in database, inserting new type: '{0}'".format(fullname))
         bookingtype = BookingTypeModel(fullname=fullname)
         DBSession.add(bookingtype)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
         
         #print "FULLNAME: {0}".format(bookingtype.fullname)
     return bookingtype
@@ -222,8 +224,8 @@ def __docustodytype(shortname):
     except:
         custodytype = CustodyTypeModel(shortname=shortname)
         DBSession.add(custodytype)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return custodytype
 
 def __docourt(shortname):
@@ -232,8 +234,8 @@ def __docourt(shortname):
     except:
         court = CourtModel(shortname=shortname)
         DBSession.add(court)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return court
 
 def __dojudge(fullname,first,middle,last):
@@ -242,8 +244,8 @@ def __dojudge(fullname,first,middle,last):
     except:
         judge = JudgeModel(fullname=fullname,first=first,middle=middle,last=last)
         DBSession.add(judge)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return judge
 
 def __doagency(fullname):
@@ -252,8 +254,8 @@ def __doagency(fullname):
     except:
         agency = AgencyModel(fullname=fullname)
         DBSession.add(agency)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return agency
 
 def __doarresttype(fullname):
@@ -262,18 +264,20 @@ def __doarresttype(fullname):
     except:
         arresttype = ArrestTypeModel(fullname=fullname)
         DBSession.add(arresttype)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return arresttype
 
 def __docharge(fullname):
     try:
         charge = DBSession.query(ChargeModel).filter(ChargeModel.fullname == fullname).one()
+        #report("Charge '{0}' already in database, using query'd row".format(fullname))
     except:
+        #report("Charge not found in database, inserting new type: '{0}'".format(fullname))
         charge = ChargeModel(fullname=fullname)
         DBSession.add(charge)
-        DBSession.flush()
-        transaction.commit()
+    DBSession.flush()
+    transaction.commit()
     return charge
 
 def _parseinmates(rawinmates):
@@ -291,75 +295,106 @@ def _parseinmates(rawinmates):
         inmate.last = last
         bookings = [] 
         for data in rawdata:
+            report("[Inmate/Custody Info] Working on: '{0}'".format(data))
             if re.match('([0-9]{6}) [A-Z] [A-Z] ([0-9]{2})-([0-9]{2})-([0-9]{4})',data):
+                report("Inmate info match, procesing.")
                 parts = data.split(' ')
                 inmate.mcid = parts[0]
                 inmate.sex = parts[1]
                 inmate.race = parts[2]
                 inmate.dob = datetime.datetime.strptime(parts[3],"%m-%d-%Y")
             if re.match('[0-9]{2}-[0-9]{2}-[0-9]{4} [0-9]{4} [A-Z]{3}',data):
+                report("Custody info match, processing.")
                 parts = data.split(' ')
                 dt = "{0} {1}".format(parts[0],parts[1])
                 custody.datetime = datetime.datetime.strptime(dt,"%m-%d-%Y %H%M")
                 custody.custodyclass = " ".join(parts[2:])
             if inmate.populated():
+                report("Inmate data populated, parsing bookings ...")
                 booking = BookingModel()
                 for _data in rawdata:
+                    report("[Bookings] Working on: '{0}'".format(_data))
                     if re.match('Book Dt:',_data):
+                        report("Found 'Book Dt.'")
                         _bookdatetime = _data.split(':')[1].strip()
                         booking.datetime = datetime.datetime.strptime(_bookdatetime,"%m/%d/%Y %H%M")
                     if re.match('Book Typ:',_data):
+                        report("Found 'Book Type'")
                         _bookingtype = _data.split(':')[1].strip()
                         booking.bookingtype = __dobookingtype(_bookingtype)
                     if re.match('Cus Typ:',_data):
+                        report("Found Cus Typ")
                         _custodytype = _data.split(':')[1].strip()
                         booking.custodytype = __docustodytype(_custodytype)
                     if re.match('Bail:',_data):
+                        report("Found 'Bail'")
                         _bail = _data.split(':')[1].strip()
                         booking.bail = _bail
                     if re.match('Bond:',_data):
+                        report("Found 'Bond'")
                         _bond = _data.split(':')[1].strip()
                         booking.bond = _bond
                     if re.match('Court:',_data):
+                        report("Found 'Court'")
                         _court = _data.split(':')[1].strip()
                         booking.court = __docourt(_court)
                     if re.match('Exp Rel:',_data):
+                        report("Found 'Exp Rel'")
                         _expectedrelease = _data.split(':')[1].strip()
                         if _expectedrelease != "":
                             booking.expectedrelease = datetime.datetime.strptime(_expectedrelease,"%m-%d-%Y")
                         else:
                             booking.expectedrelease = None
                     if re.match('Judge:',_data):
+                        report("Found 'Judge'")
                         _judge = _data.split(':')[1].strip()
                         first,middle,last = _parsename(_judge)
                         booking.judge = __dojudge(_judge,first,middle,last)
                     if re.match('Arr Agy:',_data):
+                        report("Found 'Arr Agy'")
                         _agency = _data.split(':')[1].strip()
                         booking.agency = __doagency(_agency)
                     if re.match('Arr Typ',_data):
+                        report("Found 'Arr Typ'")
                         _arresttype = _data.split(':')[1].strip()
                         booking.arresttype = __doarresttype(_arresttype)
                     if re.match('ROC:',_data):
+                        report("Found 'ROC'")
                         _roc = _data.split(':')[1].strip()
                         booking.roc = _roc
                     if re.match('Chg:',_data):
+                        report("Found 'Chg'")
                         _charge = _data.split(':')[1].strip()
                         booking.charge = __docharge(_charge)
                     if re.match('Indict:',_data):
+                        report("Found 'Indict'")
                         _indict = _data.split(':')[1].strip()
                         booking.indict = _indict
                     if re.match('Adj Dt:',_data):
-                        _adjusteddate = _data.split(':')[1].strip()
+                        report("Found 'Adj Dt'")
+                        _adjusteddate = _data.split(':')[1].strip() 
                         if _adjusteddate.strip() == "":
                             booking.adjusteddate = None
                         else:
                             booking.adjusteddate = datetime.datetime.strptime(_adjusteddate,"%m/%d/%Y")
-
                     if re.match('Term:',_data):
+                        report("Found 'Term'")
                         _term = _data.split(':')[1].strip()
                         days = _term.split(' ')[0]
                         booking.term = days
+                    # see if we have all of the data for one booking, and if we do then add it to the
+                    # list of bookings, and reset our booking modle object
+                    if booking.populated():
+                       report("\tComplete Booking Found, adding to list.")
+                       bookings.append(booking)
+                       booking = BookingModel()
+                       continue
+                report("... Done processing bookings.")
                 break
+
+            # end of if
+
+
         retdata.append((inmate,custody,bookings))
         report("... Done working on {0}.".format(rawname))
     report("... Done attempting to process inmate, custody, and booking data.")

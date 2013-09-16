@@ -63,6 +63,7 @@ class InmateModel(Base):
         self.dob = dob
 
     def populated(self):
+        #print "first:{0}, last:{1}, middle:{2}, mcid:{3}, sex:{4}, race:{5}, dob:{6}".format(self.first,self.last,self.middle,self.mcid,self.sex,self.race,self.dob)
         pop = False
         if (self.first != None and 
             self.last != None and
@@ -218,13 +219,13 @@ class BookingModel(Base):
     term = Column(Integer, index=True)
 
     def __init__(self,
-                 inmateid=None,
-                 scraperunid=None,
-                 courtid=None,
-                 judgeid=None,
-                 agencyid=None,
-                 chargeid=None,
-                 arresttypeid=None,
+                 inmate=None,
+                 scraperun=None,
+                 court=None,
+                 judge=None,
+                 agency=None,
+                 charge=None,
+                 arresttype=None,
                  censusdate=None,
                  bookingdatetime=None,
                  bail=None,
@@ -235,13 +236,13 @@ class BookingModel(Base):
                  adjustdate=None,
                  term=None
                 ):
-        self.inmateid = inmateid
-        self.scraperunid = scraperunid
-        self.courtid = courtid
-        self.judgeid = judgeid
-        self.agencyid = agencyid
-        self.chargeid = chargeid
-        self.arresttypeid = arresttypeid
+        self.inmate = inmate
+        self.scraperun = scraperun
+        self.court = court
+        self.judge = judge
+        self.agency = agency
+        self.charge = charge
+        self.arresttype = arresttype
         self.censusdate = censusdate
         self.bookingdatetime = bookingdatetime
         self.bail = bail
@@ -252,3 +253,25 @@ class BookingModel(Base):
         self.adjustdate = adjustdate
         self.term = term
 
+    def populated(self):
+        pop = False
+        #print "".format(self.
+        if (self.inmate != None and
+            self.scraperun != None and
+            self.court != None and
+            self.judge != None and
+            self.agency != None and
+            self.charge != None and
+            self.arresttype != None and
+            self.censusdate != None and
+            #self.bookingdatetime != None and
+            self.bail != None and
+            self.bond != None and
+            #self.expectedrelease != None and
+            self.roc != None and
+            self.indict != None and
+            self.adjustdate != None and
+            self.term != None
+           ):
+            pop = True
+        return pop
