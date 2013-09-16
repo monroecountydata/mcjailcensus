@@ -31,10 +31,10 @@ def report(text):
     if(verbose):
         print "[{0}] {1}".format(datetime.datetime.now().strftime("%x %X"),text)
 
-def _downloadpdf(url):
+def _downloadpdf(url,downloaddir="./pdfs"):
     # report("Downloading PDF ...")
     f = urlopen(url)
-    filename = "./pdfs/{0}".format(os.path.basename(url))
+    filename = "{0}/{1}".format(downloaddir,os.path.basename(url))
     with open(filename, "wb") as local_file:
         local_file.write(f.read())
     #report("... Done downloading PDF.")
@@ -121,7 +121,12 @@ def _decodepdf(filename,debug=False):
 
     return pdfstr,True
 
-def _pullpdf(url="http://www2.monroecounty.gov/sheriff-inmate",baseurl="http://www2.monroecounty.gov",linktext="Inmate Census",debug=False):
+def _pullpdf(url="http://www2.monroecounty.gov/sheriff-inmate",
+             baseurl="http://www2.monroecounty.gov",
+             linktext="Inmate Census",
+             downloaddir="./pdfs",
+             debug=False
+            ):
     report("Pulling in PDF data ...")
     #debug = True
     pdftext = ""
@@ -143,7 +148,7 @@ def _pullpdf(url="http://www2.monroecounty.gov/sheriff-inmate",baseurl="http://w
                     report("... Link found.")
                     pdfurl = "{0}{1}".format(baseurl,tag['href'])
                     report("Downloading PDF ...")
-                    filename = _downloadpdf(pdfurl)
+                    filename = _downloadpdf(pdfurl,downloaddir)
                     report("... Done Downloading PDF.")
                     report("Decoding PDF ...")
                     pdftext,success = _decodepdf(filename)
@@ -400,7 +405,7 @@ def _parseinmates(rawinmates):
     report("... Done attempting to process inmate, custody, and booking data.")
     return retdata,success
 
-def getinmates(debug=False):
+def getinmates(debug=False,downloaddir='./pdfs'):
     inmates = []
     sucess = False
     if debug == True:
@@ -408,7 +413,7 @@ def getinmates(debug=False):
         with open("pdftext.txt", "r") as _file:
             pdftext = _file.read()
     else:
-        pdftext,success = _pullpdf(debug=debug)
+        pdftext,success = _pullpdf(debug=debug,downloaddir=downloaddir)
     if success:
         _inmates,success = _pullinmates(pdftext)
     if success:
@@ -427,6 +432,7 @@ def main():
     debug = config.getboolean('processcensus','debug')
     verbose = config.get('processcensus','verbose')
     uri = config.get('processcensus','uri')
+    downloaddir = config.get('processcensus','downloaddir')
     #except:
     #    raise Exception("There is an error in your config.ini file.")
     report("... Done reading configuration.")
@@ -441,7 +447,7 @@ def main():
 
     report("Pulling census from the interwebs ...")
 
-    theinmates,success = getinmates(debug)
+    theinmates,success = getinmates(debug,downloaddir)
     if success:
         report("... Done pulling and processing census.")
     else:
